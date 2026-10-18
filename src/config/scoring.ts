@@ -8,10 +8,11 @@ export const SCORING = {
   boardClearBonus: 300,
 } as const;
 
-/** Star thresholds, as multiples of the level's star reference score. */
+/** Star thresholds. A level ends as soon as its goal is met, so stars reward reaching it in few moves. */
 export const STARS = {
-  two: 1.25,
-  three: 1.5,
+  /** Moves used, as a multiple of the level's par (the bot's moves to the goal), for 3 / 2 stars. */
+  parThree: 1,
+  parTwo: 1.5,
   /** On move-limited levels: fraction of the limit left unused that earns 2 / 3 stars. */
   movesLeftTwo: 0.1,
   movesLeftThree: 0.25,

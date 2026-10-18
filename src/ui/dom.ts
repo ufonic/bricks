@@ -50,7 +50,7 @@ export const ICONS = {
 
 /** Three stars; `n` of them filled. */
 export function starsEl(n: number, cls = 'stars'): HTMLElement {
-  return h('span', { class: cls }, ...[0, 1, 2].map((i) => icon(ICONS.star, `star${i < n ? ' on' : ''}`)));
+  return h('span', { class: cls }, ...[0, 1, 2].map((i) => icon(ICONS.star, `icon star${i < n ? ' on' : ''}`)));
 }
 
 export function fmt(n: number): string {

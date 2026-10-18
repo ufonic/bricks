@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyMove, canUndo, finish, isGameOver, newGame, undo } from '../src/core/game';
+import { applyMove, canUndo, isGameOver, newGame, undo } from '../src/core/game';
 import { emptyBoard } from '../src/core/board';
 import { computeStars } from '../src/core/objectives';
 import { fillRow } from './helpers';
@@ -16,7 +16,7 @@ const sq3: Piece = {
 const level = (over: Partial<LevelInfo> = {}): LevelInfo => ({
   objectives: [{ type: 'score', target: 5 }],
   moveLimit: null,
-  starRef: 5,
+  parMoves: 4,
   difficulty: 0.2,
   boss: false,
   breather: false,
@@ -94,14 +94,19 @@ describe('applyMove', () => {
 });
 
 describe('levels', () => {
-  it('keeps playing after the goal is met, then wins at game over', () => {
-    let s = withTray(newGame({ mode: 'level', seed: 1, level: level() }), [sq3, null, sq3]);
+  it('ends the level as won the moment the goal is met', () => {
+    const s = withTray(newGame({ mode: 'level', seed: 1, level: level() }), [sq3, null, sq3]);
     const res = applyMove(s, 0, 0, 0);
-    s = res.state;
-    expect(s.goalMet).toBe(true);
-    expect(s.status).toBe('playing');
+    expect(res.state.goalMet).toBe(true);
+    expect(res.state.status).toBe('won');
     expect(res.events.some((e) => e.type === 'objectiveMet')).toBe(true);
-    expect(finish(s).status).toBe('won');
+    expect(res.events.at(-1)).toEqual({ type: 'gameOver', status: 'won' });
+    // No further moves once won.
+    expect(applyMove(res.state, 2, 4, 4).events).toEqual([{ type: 'invalid' }]);
+  });
+  it('keeps playing while the goal is not yet met', () => {
+    const s = withTray(newGame({ mode: 'level', seed: 1, level: level({ objectives: [{ type: 'score', target: 50 }] }) }), [sq3, null, sq3]);
+    expect(applyMove(s, 0, 0, 0).state.status).toBe('playing');
   });
   it('fails a move-limited level when moves run out', () => {
     let s = withTray(
@@ -117,14 +122,14 @@ describe('levels', () => {
     const s = withTray(newGame({ mode: 'level', seed: 1, level: level({ moveLimit: 10 }) }), [sq3, dot, dot]);
     const after = applyMove(s, 0, 0, 0).state;
     expect(after.status).toBe('won');
-    expect(computeStars(after.level!, after.goalMet, after.score, after.movesUsed)).toBe(3);
+    expect(computeStars(after.level!, after.goalMet, after.movesUsed)).toBe(3);
   });
-  it('stars scale with score', () => {
-    const info = level({ starRef: 100 });
-    expect(computeStars(info, false, 500, 1)).toBe(0);
-    expect(computeStars(info, true, 100, 1)).toBe(1);
-    expect(computeStars(info, true, 125, 1)).toBe(2);
-    expect(computeStars(info, true, 150, 1)).toBe(3);
+  it('stars reward reaching the goal in fewer moves than par', () => {
+    const info = level({ parMoves: 10 });
+    expect(computeStars(info, false, 1)).toBe(0);
+    expect(computeStars(info, true, 10)).toBe(3);
+    expect(computeStars(info, true, 15)).toBe(2);
+    expect(computeStars(info, true, 16)).toBe(1);
   });
 });
 

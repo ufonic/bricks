@@ -13,8 +13,8 @@ Where SPEC.md was ambiguous, the simplest workable option was chosen and recorde
 
 ## Levels
 
-- **When a level ends.** With no move limit, meeting the goal does not end the level. A "Finish" button appears and play continues for more stars until no piece fits; the level counts as won if the goal was met. With a move limit, the level ends as soon as the goal is met (won) or the moves run out (lost).
-- **Stars.** 1 star for meeting the goal. 2 stars at 125% and 3 stars at 150% of the star reference score: the score target on score levels, otherwise the bot's score when it met the goal. On move-limited levels, finishing with ≥10% of moves left also gives 2 stars, and ≥25% gives 3.
+- **When a level ends.** A level ends the moment its goal is met: the result card pops up and play stops (changed from the original "keep playing for stars" design). It also ends, as a loss, when no piece fits or a move limit runs out.
+- **Stars.** Because a level stops at its goal, stars reward getting there in few moves. Par is the number of moves the bot needed. 1 star for meeting the goal, 2 stars within 1.5× par, 3 stars within par. On move-limited levels, finishing with ≥10% of moves left also gives 2 stars, and ≥25% gives 3.
 - **"Break stone" and "Locked cells"** are mechanics, not goals. Stones are mixed into the starting blocks (so on "Clear blocks" levels they need two clears). Locks are scattered on empty cells. Objectives are: score, lines, clear blocks, gems.
 - **The piece sequence** is driven by a seeded RNG stored in the game state, so the deals are reproducible for the same moves. Because fair dealing depends on the board, different moves can produce different later deals. Retrying a level restarts the same board and the same RNG.
 - **Bot check.** The greedy bot plays the real level (same dealer and seed) for 22–45 moves depending on difficulty. A board is rejected if the bot gets stuck before half of those moves, clears fewer than 4 lines on a lines level, or reaches less than 70% of a blocks/gems goal. After 10 failed tries the fill ratio drops 15%. After 50 tries the best attempt is used, with its goals lowered to what the bot achieved.

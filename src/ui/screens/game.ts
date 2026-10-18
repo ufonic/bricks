@@ -1,5 +1,5 @@
 import { TIMING } from '../../config/theme';
-import { applyMove, canUndo, finish, newGame, undo } from '../../core/game';
+import { applyMove, canUndo, newGame, undo } from '../../core/game';
 import { generateDaily, generateLevel } from '../../core/levelgen';
 import { computeStars, objectiveValue } from '../../core/objectives';
 import { currentStreak, dateKey, recordDailyWin, recordLevelResult } from '../../core/save';
@@ -13,7 +13,7 @@ import { Effects } from '../../render/effects';
 import { clearSpriteCache } from '../../render/tiles';
 import { drawTray } from '../../render/trayView';
 import type { App, Route, Screen } from '../app';
-import { fmt, h, icon, ICONS, starsEl } from '../dom';
+import { fmt, h, icon, ICONS } from '../dom';
 import { type Overlay } from '../overlays/overlay';
 import { showPause } from '../overlays/pause';
 import { showResult } from '../overlays/result';
@@ -112,7 +112,6 @@ export function gameScreen(app: App, route: GameRoute): Screen {
     // Goals
     goalsEl.replaceChildren();
     if (state.level) {
-      const stars = state.goalMet ? computeStars(state.level, true, state.score, state.movesUsed) : 0;
       for (const o of state.level.objectives) {
         const g = goalText(o, state);
         goalsEl.append(
@@ -124,7 +123,6 @@ export function gameScreen(app: App, route: GameRoute): Screen {
           ),
         );
       }
-      if (state.goalMet) goalsEl.append(starsEl(stars, 'stars small live'));
     } else {
       goalsEl.append(h('div', { class: 'best' }, `Best ${fmt(Math.max(app.save.endlessHighScore, state.score))}`));
     }
@@ -136,13 +134,11 @@ export function gameScreen(app: App, route: GameRoute): Screen {
       shownScore = state.score;
     }
     scoreEl.textContent = fmt(state.score);
-    // Left: moves left or Finish
+    // Left: moves left
     leftSlot.replaceChildren();
     if (state.level?.moveLimit != null) {
       const left = state.level.moveLimit - state.movesUsed;
       leftSlot.append(h('div', { class: `chip ${left <= 3 ? 'warn' : ''}` }, h('b', {}, String(left)), h('span', {}, 'moves')));
-    } else if (state.goalMet && state.status === 'playing') {
-      leftSlot.append(h('button', { class: 'btn small primary', onClick: () => doFinish() }, 'Finish'));
     }
     // Undo
     const limit = undoLimit();
@@ -228,11 +224,8 @@ export function gameScreen(app: App, route: GameRoute): Screen {
           if (l) effects.text(`Board clear! +${e.points}`, l.boardX + l.boardSize / 2, l.boardY + l.boardSize * 0.58, now, { size: Math.round(l.pitch * 0.62), dur: TIMING.bannerMs, rise: 16, color: '#9ff59a' });
           break;
         case 'objectiveMet':
-          if (state.status === 'playing') {
-            sfxFanfare();
-            haptics.success();
-            if (l) effects.text('Goal complete!', l.boardX + l.boardSize / 2, l.boardY + l.boardSize * 0.3, now, { size: Math.round(l.pitch * 0.62), dur: TIMING.bannerMs, rise: 10, color: '#9ff59a' });
-          }
+          // The level is over; the result card follows once the clear animation finishes.
+          if (l) effects.text('Goal complete!', l.boardX + l.boardSize / 2, l.boardY + l.boardSize * 0.3, now, { size: Math.round(l.pitch * 0.62), dur: TIMING.bannerMs, rise: 10, color: '#9ff59a' });
           break;
         default:
           break;
@@ -253,7 +246,7 @@ export function gameScreen(app: App, route: GameRoute): Screen {
     let newBest = false;
     let streak: number | undefined;
     if (mode === 'level' && state.level && levelNumber) {
-      stars = computeStars(state.level, state.goalMet, state.score, state.movesUsed);
+      stars = computeStars(state.level, state.goalMet, state.movesUsed);
       const prev = app.save.levels[levelNumber]?.bestScore ?? 0;
       app.save = recordLevelResult(app.save, levelNumber, state.score, stars as 0 | 1 | 2 | 3);
       best = Math.max(prev, state.score);
@@ -261,7 +254,7 @@ export function gameScreen(app: App, route: GameRoute): Screen {
     } else if (mode === 'daily') {
       const prev = app.save.daily.results[today] ?? 0;
       if (won) app.save = recordDailyWin(app.save, today, state.score);
-      stars = state.level ? computeStars(state.level, state.goalMet, state.score, state.movesUsed) : 0;
+      stars = state.level ? computeStars(state.level, state.goalMet, state.movesUsed) : 0;
       best = Math.max(prev, won ? state.score : 0);
       newBest = won && prev > 0 && state.score > prev;
       streak = currentStreak(app.save, today);
@@ -323,11 +316,6 @@ export function gameScreen(app: App, route: GameRoute): Screen {
     saveProgress();
     updateHud();
     request();
-  }
-
-  function doFinish() {
-    state = finish(state);
-    if (state.status !== 'playing') onEnd();
   }
 
   function pause() {

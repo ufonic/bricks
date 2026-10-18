@@ -145,26 +145,22 @@ export function applyMove(state: GameState, pieceIndex: number, row: number, col
     events.push({ type: 'dealt' });
   }
 
-  // Objectives.
-  if (s.level && !s.goalMet && allObjectivesMet(s.level, s.progress, s.score)) {
+  // Objectives. A level with no objectives (the generator's bot run) never ends on a goal.
+  if (s.level && s.level.objectives.length > 0 && !s.goalMet && allObjectivesMet(s.level, s.progress, s.score)) {
     s.goalMet = true;
     events.push({ type: 'objectiveMet' });
   }
 
-  // End conditions.
-  if (s.level?.moveLimit != null && (s.goalMet || s.movesUsed >= s.level.moveLimit)) {
+  // End conditions: meeting the goal wins immediately.
+  if (s.goalMet) {
+    s.status = 'won';
+  } else if (s.level?.moveLimit != null && s.movesUsed >= s.level.moveLimit) {
     s.status = endStatus(s);
   } else if (isGameOver(s)) {
     s.status = endStatus(s);
   }
   if (s.status !== 'playing') events.push({ type: 'gameOver', status: s.status });
   return { state: s, events };
-}
-
-/** Ends a level early once its goal is met ("Finish"). */
-export function finish(state: GameState): GameState {
-  if (state.status !== 'playing' || !state.goalMet) return state;
-  return { ...state, status: 'won' };
 }
 
 export function canUndo(state: GameState, undoLimit: number): boolean {

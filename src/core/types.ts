@@ -46,8 +46,8 @@ export interface Objective {
 export interface LevelInfo {
   objectives: Objective[];
   moveLimit: number | null;
-  /** Score that earns 1 star's worth; 2 and 3 stars are multiples of it. */
-  starRef: number;
+  /** Placements the bot needed to meet the goal; stars compare the player's moves to it. */
+  parMoves: number;
   difficulty: number;
   boss: boolean;
   breather: boolean;

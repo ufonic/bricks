@@ -50,6 +50,7 @@ export function showResult(parent: HTMLElement, r: ResultInfo, a: ResultActions)
       lines.push(h('p', { class: 'goal-line' }, `${objectiveLabel(o)}: ${fmt(v)} / ${fmt(o.target)}`));
     }
   } else {
+    lines.push(h('p', { class: 'muted' }, `Goal reached in ${s.movesUsed} ${s.movesUsed === 1 ? 'move' : 'moves'}`));
     lines.push(h('p', { class: r.newBest ? 'badge' : 'muted' }, r.newBest ? 'New best!' : `Best ${fmt(r.best)}`));
     if (r.streak) lines.push(h('p', { class: 'muted' }, `Daily streak: ${r.streak}`));
   }

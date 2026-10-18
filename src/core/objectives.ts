@@ -22,12 +22,14 @@ export function allObjectivesMet(level: LevelInfo, progress: Progress, score: nu
   return level.objectives.every((o) => isObjectiveMet(o, progress, score));
 }
 
-/** 0 when the goal was not met; otherwise 1–3. */
-export function computeStars(level: LevelInfo, goalMet: boolean, score: number, movesUsed: number): 0 | 1 | 2 | 3 {
+/** 0 when the goal was not met; otherwise 1–3, by how few moves it took. */
+export function computeStars(level: LevelInfo, goalMet: boolean, movesUsed: number): 0 | 1 | 2 | 3 {
   if (!goalMet) return 0;
+  // Games saved before par existed have none: don't penalize them.
+  const par = level.parMoves ?? Infinity;
   let stars = 1;
-  if (score >= level.starRef * STARS.three) stars = 3;
-  else if (score >= level.starRef * STARS.two) stars = 2;
+  if (movesUsed <= par * STARS.parThree) stars = 3;
+  else if (movesUsed <= par * STARS.parTwo) stars = 2;
   if (level.moveLimit !== null) {
     const left = (level.moveLimit - movesUsed) / level.moveLimit;
     if (left >= STARS.movesLeftThree) stars = 3;

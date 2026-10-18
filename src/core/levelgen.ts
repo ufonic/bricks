@@ -250,11 +250,16 @@ interface Attempt {
   quality: number;
   objectives: Objective[];
   moveLimit: number | null;
-  starRef: number;
 }
 
 const valueAt = (step: BotTraceStep | undefined, t: ObjectiveType) =>
   !step ? 0 : t === 'score' ? step.score : t === 'lines' ? step.lines : t === 'gems' ? step.gems : step.blocksCleared;
+
+/** Bot moves until every objective was met; the whole run if it never got there. */
+function movesToGoal(trace: BotTraceStep[], objectives: Objective[]): number {
+  const i = trace.findIndex((step) => objectives.every((o) => valueAt(step, o.type) >= o.target));
+  return i >= 0 ? i + 1 : 0;
+}
 
 function evaluateAttempt(
   board: Board,
@@ -295,18 +300,14 @@ function evaluateAttempt(
   });
 
   // First move at which the bot met every objective.
-  const metIndex = trace.findIndex((step) => objectives.every((o) => valueAt(step, o.type) >= o.target));
+  const metIndex = movesToGoal(trace, objectives) - 1;
   let moveLimit: number | null = null;
   if (plan.moveLimit) {
     if (metIndex < 0) ok = false;
     else moveLimit = Math.ceil((metIndex + 1) * range(LEVELGEN.moveSlack, d)) + LEVELGEN.moveSpare;
   }
 
-  const scoreObj = objectives.find((o) => o.type === 'score');
-  const refStep = metIndex >= 0 ? trace[metIndex] : last;
-  const starRef = scoreObj ? scoreObj.target : tidy(Math.max(10, (refStep?.score ?? 10)));
-
-  return { board, dealSeed, trace, ok, quality, objectives, moveLimit, starRef };
+  return { board, dealSeed, trace, ok, quality, objectives, moveLimit };
 }
 
 function build(seed: number, d: number, n: number | null): GeneratedLevel {
@@ -327,7 +328,7 @@ function build(seed: number, d: number, n: number | null): GeneratedLevel {
       mode: 'level',
       seed: dealSeed,
       board,
-      level: { objectives: [], moveLimit: null, starRef: 0, difficulty: d, boss: false, breather: false, mechanics: [] },
+      level: { objectives: [], moveLimit: null, parMoves: 0, difficulty: d, boss: false, breather: false, mechanics: [] },
     });
     const trace = runBot(start, botMoves);
     const attempt = evaluateAttempt(board, dealSeed, trace, plan, d, gemCount, botMoves);
@@ -341,7 +342,7 @@ function build(seed: number, d: number, n: number | null): GeneratedLevel {
     // Every board had a full line (practically impossible): fall back to an empty board.
     const board = emptyBoard();
     const dealSeed = rng.uint();
-    const start = newGame({ mode: 'level', seed: dealSeed, board, level: { objectives: [], moveLimit: null, starRef: 0, difficulty: d, boss: false, breather: false, mechanics: [] } });
+    const start = newGame({ mode: 'level', seed: dealSeed, board, level: { objectives: [], moveLimit: null, parMoves: 0, difficulty: d, boss: false, breather: false, mechanics: [] } });
     best = evaluateAttempt(board, dealSeed, runBot(start, botMoves), { ...plan, types: ['score'], moveLimit: false }, d, 0, botMoves);
   }
 
@@ -374,7 +375,7 @@ function build(seed: number, d: number, n: number | null): GeneratedLevel {
     info: {
       objectives,
       moveLimit,
-      starRef: objectives.find((o) => o.type === 'score')?.target ?? best!.starRef,
+      parMoves: movesToGoal(best!.trace, objectives) || best!.trace.length,
       difficulty: d,
       boss: n !== null && isBoss(n),
       breather: n !== null && isBreather(n),
