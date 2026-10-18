@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b47a46"/>
+      <stop offset="1" stop-color="#7a4a24"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8a8c"/><stop offset="0.25" stop-color="#e0393e"/><stop offset="1" stop-color="#97191e"/>
+    </linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe27a"/><stop offset="0.25" stop-color="#f4b81c"/><stop offset="1" stop-color="#b27a05"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fb8ff"/><stop offset="0.25" stop-color="#2f7fe0"/><stop offset="1" stop-color="#1a4d94"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#94e27f"/><stop offset="0.25" stop-color="#4cb43c"/><stop offset="1" stop-color="#2a7621"/>
+    </linearGradient>
+    <symbol id="brick" viewBox="0 0 100 100">
+      <rect x="0" y="0" width="100" height="100" rx="16"/>
+      <rect x="7" y="7" width="86" height="80" rx="11" fill="#fff" fill-opacity="0.12"/>
+      <g fill="#000" fill-opacity="0.28">
+        <circle cx="31" cy="35" r="11.5"/><circle cx="69" cy="35" r="11.5"/><circle cx="31" cy="71" r="11.5"/><circle cx="69" cy="71" r="11.5"/>
+      </g>
+      <g fill="#fff" fill-opacity="0.3">
+        <circle cx="31" cy="31" r="11.5"/><circle cx="69" cy="31" r="11.5"/><circle cx="31" cy="67" r="11.5"/><circle cx="69" cy="67" r="11.5"/>
+      </g>
+    </symbol>
+  </defs>
+  <rect width="512" height="512" fill="url(#wood)"/>
+  <rect x="86" y="86" width="340" height="340" rx="34" fill="#3a2516"/>
+  <use href="#brick" x="106" y="106" width="146" height="146" fill="url(#red)"/>
+  <use href="#brick" x="260" y="106" width="146" height="146" fill="url(#yellow)"/>
+  <use href="#brick" x="106" y="260" width="146" height="146" fill="url(#blue)"/>
+  <use href="#brick" x="260" y="260" width="146" height="146" fill="url(#green)"/>
+</svg>
